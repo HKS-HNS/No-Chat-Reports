@@ -23,6 +23,7 @@ public class NCRConfigEncryption extends JSONConfig {
 			algorithmName = Encryption.AES_CFB8.getName();
 	protected List<String> encryptableCommands = List.of("msg:1", "w:1", "whisper:1", "tell:1", "r:0", "dm:1",
 			"me:0", "m:1", "t:1", "pm:1", "emsg:1", "epm:1", "etell:1", "ewhisper:1");
+	protected List<String> commandPrefixes = List.of("/", ".");
 	private transient Encryption algorithm;
 	private transient boolean isValid = false;
 	private transient String lastMessage = "???";
@@ -120,7 +121,7 @@ public class NCRConfigEncryption extends JSONConfig {
 	}
 
 	public int getEncryptionStartIndex(String message) {
-		if (!message.startsWith("/") && !message.startsWith("."))
+		if (commandPrefixes.stream().noneMatch(message::startsWith))
 			return this.encryptPublic ? 0 : -1;
 		else {
 			for (String rule : this.encryptableCommands) {
