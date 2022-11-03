@@ -84,6 +84,9 @@ public abstract class AESEncryptor<T extends AESEncryption> extends Encryptor<T>
 				} else if (this.encryption.getEncapsulation().equalsIgnoreCase("Base64R")) {
 					return encodeBase64R(ByteBuffer.allocate(encrypted.length + tuple.getB().length).put(tuple.getB())
 					.put(encrypted).array());
+				} else if (this.encryption.getEncapsulation().equalsIgnoreCase("Sus16")) {
+					return encodeSus16(ByteBuffer.allocate(encrypted.length + tuple.getB().length).put(tuple.getB())
+					.put(encrypted).array());
 				} else {
 					throw new RuntimeException("Unknown Encapsulation: " + this.encryption.getEncapsulation());
 				}
@@ -92,6 +95,8 @@ public abstract class AESEncryptor<T extends AESEncryption> extends Encryptor<T>
 					return encodeBase64(this.encryptor.doFinal(toBytes(message)));
 				} else if (this.encryption.getEncapsulation().equalsIgnoreCase("Base64R")) {
 					return encodeBase64R(this.encryptor.doFinal(toBytes(message)));
+				} else if (this.encryption.getEncapsulation().equalsIgnoreCase("Sus16")) {
+					return encodeSus16(this.encryptor.doFinal(toBytes(message)));
 				} else {
 					throw new RuntimeException("Unknown Encapsulation: " + this.encryption.getEncapsulation());
 				}
@@ -105,11 +110,13 @@ public abstract class AESEncryptor<T extends AESEncryption> extends Encryptor<T>
 	public String decrypt(String message) {
 		String candidate = null;
 		RuntimeException firstEx = null;
+		// Attempt Base64R first
 		try {
 			candidate = internalRawDecrypt(decodeBase64RBytes(message));
 		} catch (RuntimeException ex) {
 			if(firstEx == null) firstEx = ex;
 		}
+		// If failed, attempt Base64 (old version)
 		if (candidate == null || !candidate.startsWith("#%")) {
 			try {
 				candidate = internalRawDecrypt(decodeBase64NonRBytes(message));
@@ -117,11 +124,14 @@ public abstract class AESEncryptor<T extends AESEncryption> extends Encryptor<T>
 				if(firstEx == null) firstEx = ex;
 			}
 		}
-		/*
-		 * if (candidate == null || !candidate.startsWith("#%")) {
-		 * candidate = internalRawDecrypt(decodeBase64Bytes(message));
-		 * }
-		 */
+		// If also failed, attempt Sus16
+		if (candidate == null || !candidate.startsWith("#%")) {
+			try {
+				candidate = internalRawDecrypt(decodeSus16Bytes(message));
+			} catch (RuntimeException ex) {
+				if(firstEx == null) firstEx = ex;
+			}
+		}
 		if(candidate == null && firstEx != null) {
 			throw firstEx;
 		}
