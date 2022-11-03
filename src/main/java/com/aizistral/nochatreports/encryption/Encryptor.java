@@ -62,6 +62,14 @@ public abstract class Encryptor<T extends Encryption> {
 		return fromBytes(toBytes(string));
 	}
 
+	protected static String encodeBase64(String message) {
+		return encodeBase64(toBytes(message));
+	}
+
+	protected static String encodeBase64(byte[] bytes) {
+		return fromBytes(Encryption.BASE64_ENCODER.encode(bytes)).replace('/', '\\');
+	}
+
 	protected static String encodeBase64R(String string) {
 		return encodeBase64R(toBytes(string));
 	}
@@ -78,8 +86,20 @@ public abstract class Encryptor<T extends Encryption> {
 		return fromBytes(decodeBase64RBytes(string));
 	}
 
+	protected static String decodeBase64(String string) {
+		return fromBytes(decodeBase64NonRBytes(string));
+	}
+
 	protected static byte[] decodeBase64RBytes(String string) {
 		return Encryption.BASE64_DECODER.decode(toBytes(unshiftBase64R(string)));
+	}
+
+	protected static byte[] decodeBase64Bytes(String string) {
+		return Encryption.BASE64_DECODER.decode(toBytes(unshiftBase64R(string)));
+	}
+
+	protected static byte[] decodeBase64NonRBytes(String string) {
+		return Encryption.BASE64_DECODER.decode(toBytes(string.replace("\\", "/")));
 	}
 
 	protected static String encodeBinaryKey(byte[] key) {

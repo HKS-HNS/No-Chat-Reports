@@ -89,14 +89,40 @@ public abstract class AESEncryptor<T extends AESEncryption> extends Encryptor<T>
 
 	@Override
 	public String decrypt(String message) {
+		String candidate = null;
+		RuntimeException firstEx = null;
+		try {
+			candidate = internalRawDecrypt(decodeBase64RBytes(message));
+		} catch (RuntimeException ex) {
+			if(firstEx == null) firstEx = ex;
+		}
+		if (candidate == null || !candidate.startsWith("#%")) {
+			try {
+				candidate = internalRawDecrypt(decodeBase64NonRBytes(message));
+			} catch (RuntimeException ex) {
+				if(firstEx == null) firstEx = ex;
+			}
+		}
+		/*
+		 * if (candidate == null || !candidate.startsWith("#%")) {
+		 * candidate = internalRawDecrypt(decodeBase64Bytes(message));
+		 * }
+		 */
+		if(candidate == null && firstEx != null) {
+			throw firstEx;
+		}
+		return candidate;
+	}
+
+	private String internalRawDecrypt(byte[] message) {
 		try {
 			if (this.useIV) {
-				var tuple = this.splitIV(decodeBase64RBytes(message));
+				var tuple = this.splitIV(message);
 
 				this.decryptor.init(DECRYPT_MODE, this.key, tuple.getA());
 				return fromBytes(this.decryptor.doFinal(tuple.getB()));
 			} else
-				return fromBytes(this.decryptor.doFinal(decodeBase64RBytes(message)));
+				return fromBytes(this.decryptor.doFinal(message));
 		} catch (AEADBadTagException ex) {
 			return "???";
 		} catch (IllegalBlockSizeException | BadPaddingException | InvalidKeyException | InvalidAlgorithmParameterException ex) {
