@@ -19,13 +19,19 @@ import net.minecraft.util.StringUtil;
 
 public class AESCFB8Encryption extends AESEncryption {
 
-	protected AESCFB8Encryption() {
-		super("CFB8", "NoPadding", true);
+	protected AESCFB8Encryption(String encapsulation) {
+		super("CFB8", "NoPadding", true, encapsulation);
 	}
 
 	@Override
 	public AESCFB8Encryptor getProcessor(String key) throws InvalidKeyException {
-		return new AESCFB8Encryptor(key);
+		if (this.getEncapsulation().equalsIgnoreCase("Base64")) {
+			return new AESCFB8Encryptor(key, Encryption.AES_CFB8_BASE64);
+		} else if (this.getEncapsulation().equalsIgnoreCase("Base64R")) {
+			return new AESCFB8Encryptor(key, Encryption.AES_CFB8_BASE64R);
+		} else {
+			throw new RuntimeException("Unknown Encapsulation: " + this.getEncapsulation());
+		}
 	}
 
 	@Override

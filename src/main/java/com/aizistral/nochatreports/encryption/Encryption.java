@@ -12,7 +12,8 @@ public abstract class Encryption {
 	protected static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
 	protected static final Base64.Decoder BASE64_DECODER = Base64.getDecoder();
 
-	public static final AESCFB8Encryption AES_CFB8 = new AESCFB8Encryption();
+	public static final AESCFB8Encryption AES_CFB8_BASE64 = new AESCFB8Encryption("Base64");
+	public static final AESCFB8Encryption AES_CFB8_BASE64R = new AESCFB8Encryption("Base64R");
 	public static final AESGCMEncryption AES_GCM = new AESGCMEncryption();
 	public static final AESECBEncryption AES_ECB = new AESECBEncryption();
 	public static final CaesarEncryption CAESAR = new CaesarEncryption();

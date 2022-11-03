@@ -19,8 +19,8 @@ public class NCRConfigEncryption extends JSONConfig {
 	protected static final String FILE_NAME = "NoChatReports/NCR-Encryption.json";
 	protected boolean skipWarning = false, enableEncryption = false, encryptPublic = true,
 			showEncryptionButton = true, showEncryptionIndicators = true;
-	protected String encryptionKey = Encryption.AES_CFB8.getDefaultKey(), encryptionPassphrase = "",
-			algorithmName = Encryption.AES_CFB8.getName();
+	protected String encryptionKey = Encryption.AES_CFB8_BASE64R.getDefaultKey(), encryptionPassphrase = "",
+			algorithmName = Encryption.AES_CFB8_BASE64R.getName();
 	protected List<String> encryptableCommands = List.of("msg:1", "w:1", "whisper:1", "tell:1", "r:0", "dm:1",
 			"me:0", "m:1", "t:1", "pm:1", "emsg:1", "epm:1", "etell:1", "ewhisper:1");
 	private transient Encryption algorithm;
@@ -40,7 +40,7 @@ public class NCRConfigEncryption extends JSONConfig {
 	@Override
 	protected void uponLoad() {
 		this.algorithm = Encryption.getRegistered().stream().filter(e -> e.getName().equals(this.algorithmName))
-				.findFirst().orElse(Encryption.AES_CFB8);
+				.findFirst().orElse(Encryption.AES_CFB8_BASE64R);
 		this.validate();
 	}
 

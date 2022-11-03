@@ -1,6 +1,5 @@
 package com.aizistral.nochatreports.encryption;
 
-import static com.aizistral.nochatreports.encryption.Encryption.AES_CFB8;
 import static com.aizistral.nochatreports.encryption.Encryption.BASE64_DECODER;
 import static com.aizistral.nochatreports.encryption.Encryption.BASE64_ENCODER;
 import static javax.crypto.Cipher.DECRYPT_MODE;
@@ -78,10 +77,25 @@ public abstract class AESEncryptor<T extends AESEncryption> extends Encryptor<T>
 				this.encryptor.init(ENCRYPT_MODE, this.key, tuple.getA());
 				byte[] encrypted = this.encryptor.doFinal(toBytes(message));
 
-				return encodeBase64R(ByteBuffer.allocate(encrypted.length + tuple.getB().length).put(tuple.getB())
-						.put(encrypted).array());
-			} else
-				return encodeBase64R(this.encryptor.doFinal(toBytes(message)));
+				if (this.encryption.getEncapsulation().equalsIgnoreCase("Base64")) {
+					return encodeBase64(ByteBuffer.allocate(encrypted.length + tuple.getB().length).put(tuple.getB())
+					.put(encrypted).array());
+
+				} else if (this.encryption.getEncapsulation().equalsIgnoreCase("Base64R")) {
+					return encodeBase64R(ByteBuffer.allocate(encrypted.length + tuple.getB().length).put(tuple.getB())
+					.put(encrypted).array());
+				} else {
+					throw new RuntimeException("Unknown Encapsulation: " + this.encryption.getEncapsulation());
+				}
+			} else {
+				if (this.encryption.getEncapsulation().equalsIgnoreCase("Base64")) {
+					return encodeBase64(this.encryptor.doFinal(toBytes(message)));
+				} else if (this.encryption.getEncapsulation().equalsIgnoreCase("Base64R")) {
+					return encodeBase64R(this.encryptor.doFinal(toBytes(message)));
+				} else {
+					throw new RuntimeException("Unknown Encapsulation: " + this.encryption.getEncapsulation());
+				}
+			}
 		} catch (IllegalBlockSizeException | BadPaddingException | InvalidKeyException | InvalidAlgorithmParameterException ex) {
 			throw new RuntimeException(ex);
 		}
