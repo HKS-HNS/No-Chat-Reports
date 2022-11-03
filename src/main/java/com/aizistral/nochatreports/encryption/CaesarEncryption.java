@@ -33,7 +33,7 @@ public class CaesarEncryption extends Encryption {
 	public boolean validateKey(String key) {
 		try {
 			int value = Integer.valueOf(key);
-			return value > 0 && value < 1025;
+			return value > 0;
 		} catch (NumberFormatException ex) {
 			return false;
 		}
