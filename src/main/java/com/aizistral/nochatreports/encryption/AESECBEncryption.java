@@ -5,7 +5,7 @@ import java.security.InvalidKeyException;
 public class AESECBEncryption extends AESEncryption {
 
 	protected AESECBEncryption() {
-		super("ECB", "PKCS5Padding", false);
+		super("ECB", "PKCS5Padding", false, "Base64R");
 	}
 
 	@Override

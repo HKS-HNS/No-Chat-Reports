@@ -27,12 +27,12 @@ import static javax.crypto.Cipher.*;
 
 public class AESCFB8Encryptor extends AESEncryptor<AESCFB8Encryption> {
 
-	protected AESCFB8Encryptor(String key) throws InvalidKeyException {
-		super(key, Encryption.AES_CFB8);
+	protected AESCFB8Encryptor(String key, AESCFB8Encryption encryption) throws InvalidKeyException {
+		super(key, encryption);
 	}
 
-	protected AESCFB8Encryptor(SecretKey key, String mode, String padding, boolean iv) throws InvalidKeyException {
-		super(key, Encryption.AES_CFB8);
+	protected AESCFB8Encryptor(SecretKey key, String mode, String padding, boolean iv, AESCFB8Encryption encryption) throws InvalidKeyException {
+		super(key, encryption);
 	}
 
 	@Override

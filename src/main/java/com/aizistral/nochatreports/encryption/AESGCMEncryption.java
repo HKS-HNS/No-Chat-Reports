@@ -5,7 +5,7 @@ import java.security.InvalidKeyException;
 public class AESGCMEncryption extends AESEncryption {
 
 	protected AESGCMEncryption() {
-		super("GCM", "NoPadding", true);
+		super("GCM", "NoPadding", true, "Base64R");
 	}
 
 	@Override

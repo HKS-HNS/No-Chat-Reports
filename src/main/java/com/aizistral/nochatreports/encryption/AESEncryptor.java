@@ -1,6 +1,5 @@
 package com.aizistral.nochatreports.encryption;
 
-import static com.aizistral.nochatreports.encryption.Encryption.AES_CFB8;
 import static com.aizistral.nochatreports.encryption.Encryption.BASE64_DECODER;
 import static com.aizistral.nochatreports.encryption.Encryption.BASE64_ENCODER;
 import static javax.crypto.Cipher.DECRYPT_MODE;
@@ -78,10 +77,30 @@ public abstract class AESEncryptor<T extends AESEncryption> extends Encryptor<T>
 				this.encryptor.init(ENCRYPT_MODE, this.key, tuple.getA());
 				byte[] encrypted = this.encryptor.doFinal(toBytes(message));
 
-				return encodeBase64R(ByteBuffer.allocate(encrypted.length + tuple.getB().length).put(tuple.getB())
-						.put(encrypted).array());
-			} else
-				return encodeBase64R(this.encryptor.doFinal(toBytes(message)));
+				if (this.encryption.getEncapsulation().equalsIgnoreCase("Base64")) {
+					return encodeBase64(ByteBuffer.allocate(encrypted.length + tuple.getB().length).put(tuple.getB())
+					.put(encrypted).array());
+
+				} else if (this.encryption.getEncapsulation().equalsIgnoreCase("Base64R")) {
+					return encodeBase64R(ByteBuffer.allocate(encrypted.length + tuple.getB().length).put(tuple.getB())
+					.put(encrypted).array());
+				} else if (this.encryption.getEncapsulation().equalsIgnoreCase("Sus16")) {
+					return encodeSus16(ByteBuffer.allocate(encrypted.length + tuple.getB().length).put(tuple.getB())
+					.put(encrypted).array());
+				} else {
+					throw new RuntimeException("Unknown Encapsulation: " + this.encryption.getEncapsulation());
+				}
+			} else {
+				if (this.encryption.getEncapsulation().equalsIgnoreCase("Base64")) {
+					return encodeBase64(this.encryptor.doFinal(toBytes(message)));
+				} else if (this.encryption.getEncapsulation().equalsIgnoreCase("Base64R")) {
+					return encodeBase64R(this.encryptor.doFinal(toBytes(message)));
+				} else if (this.encryption.getEncapsulation().equalsIgnoreCase("Sus16")) {
+					return encodeSus16(this.encryptor.doFinal(toBytes(message)));
+				} else {
+					throw new RuntimeException("Unknown Encapsulation: " + this.encryption.getEncapsulation());
+				}
+			}
 		} catch (IllegalBlockSizeException | BadPaddingException | InvalidKeyException | InvalidAlgorithmParameterException ex) {
 			throw new RuntimeException(ex);
 		}
@@ -89,14 +108,45 @@ public abstract class AESEncryptor<T extends AESEncryption> extends Encryptor<T>
 
 	@Override
 	public String decrypt(String message) {
+		String candidate = null;
+		RuntimeException firstEx = null;
+		// Attempt Base64R first
+		try {
+			candidate = internalRawDecrypt(decodeBase64RBytes(message));
+		} catch (RuntimeException ex) {
+			if(firstEx == null) firstEx = ex;
+		}
+		// If failed, attempt Base64 (old version)
+		if (candidate == null || !candidate.startsWith("#%")) {
+			try {
+				candidate = internalRawDecrypt(decodeBase64NonRBytes(message));
+			} catch (RuntimeException ex) {
+				if(firstEx == null) firstEx = ex;
+			}
+		}
+		// If also failed, attempt Sus16
+		if (candidate == null || !candidate.startsWith("#%")) {
+			try {
+				candidate = internalRawDecrypt(decodeSus16Bytes(message));
+			} catch (RuntimeException ex) {
+				if(firstEx == null) firstEx = ex;
+			}
+		}
+		if(candidate == null && firstEx != null) {
+			throw firstEx;
+		}
+		return candidate;
+	}
+
+	private String internalRawDecrypt(byte[] message) {
 		try {
 			if (this.useIV) {
-				var tuple = this.splitIV(decodeBase64RBytes(message));
+				var tuple = this.splitIV(message);
 
 				this.decryptor.init(DECRYPT_MODE, this.key, tuple.getA());
 				return fromBytes(this.decryptor.doFinal(tuple.getB()));
 			} else
-				return fromBytes(this.decryptor.doFinal(decodeBase64RBytes(message)));
+				return fromBytes(this.decryptor.doFinal(message));
 		} catch (AEADBadTagException ex) {
 			return "???";
 		} catch (IllegalBlockSizeException | BadPaddingException | InvalidKeyException | InvalidAlgorithmParameterException ex) {

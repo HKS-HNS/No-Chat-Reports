@@ -20,12 +20,18 @@ import net.minecraft.util.Tuple;
 public abstract class AESEncryption extends Encryption {
 	private final String mode, padding;
 	private final boolean requiresIV;
+	private final String encapsulation;
 
-	protected AESEncryption(String mode, String padding, boolean requiresIV) {
-		super("aes_" + mode.toLowerCase() + "_base64", "AES/" + mode + "+Base64");
+	protected AESEncryption(String mode, String padding, boolean requiresIV, String encapsulation) {
+		super("aes_" + mode.toLowerCase() + "_" + encapsulation.toLowerCase(), "AES/" + mode + "+" + encapsulation);
 		this.mode = mode;
 		this.padding = padding;
 		this.requiresIV = requiresIV;
+		this.encapsulation = encapsulation;
+	}
+
+	public String getEncapsulation() {
+		return encapsulation;
 	}
 
 	@Override
