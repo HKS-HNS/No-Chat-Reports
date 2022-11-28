@@ -29,12 +29,12 @@
 | Light Purple | &d |
 | Yellow | &e |
 | White | &f |
-| &k | Obfuscated |
-| &l | Bold |
-| &m | Strikethrough |
-| &n | Underline |
-| &o | Italic |
-| &r | Reset |
+| Obfuscated | &k |
+| Bold | &l |
+| Strikethrough | &m |
+| Underline | &n |
+| Italic | &o |
+| Reset | &r |
 
 ## Special characters table:
 | Character | Code |
