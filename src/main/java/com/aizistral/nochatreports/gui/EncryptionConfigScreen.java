@@ -48,7 +48,6 @@ public class EncryptionConfigScreen extends Screen {
 	private static final Component DICE_TOOLTIP = Component.translatable("gui.nochatreports.encryption_config.dice_tooltip");
 	private static final Component PASS_NOT_ALLOWED = Component.translatable("gui.nochatreports.encryption_config.pass_not_allowed");
 	private static final Component ENCRYPT_PUBLIC = Component.translatable("gui.nochatreports.encryption_config.encrypt_public");
-
 	private static final int FIELDS_Y_START = 45;
 	private final Screen previous;
 	private CustomEditBox keyField, passField;
@@ -204,7 +203,7 @@ public class EncryptionConfigScreen extends Screen {
 
 		int buttonWidth = 128;
 		CycleButton<Integer> cycle = CycleButton.<Integer>builder(value -> {
-					return Component.translatable("Encrypt with: keys[%s]", value);
+					return Component.translatable("gui.nochatreports.encryption_config.encryption_key_index", value);
 				}).withValues(indicesForLength(keyCount))
 				.displayOnlyValue()
 				.withInitialValue(initialValue)
