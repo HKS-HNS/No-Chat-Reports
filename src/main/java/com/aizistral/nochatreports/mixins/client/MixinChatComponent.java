@@ -1,7 +1,7 @@
 package com.aizistral.nochatreports.mixins.client;
 
-import javax.annotation.Nullable;
-
+import net.minecraft.world.level.levelgen.WorldgenRandom;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
@@ -32,6 +32,9 @@ public class MixinChatComponent {
 	private static final GuiMessageTag.Icon ENCRYPTED_ICON = GuiMessageTag.Icon.valueOf("CHAT_NCR_ENCRYPTED");
 	private boolean lastMessageEncrypted;
 	private Component lastMessageOriginal;
+	private int lastMessageKeyIndex;
+	private @Nullable String lastMessageEncapsulation;
+	private WorldgenRandom.Algorithm lastMessageAlgo;
 
 	@ModifyVariable(method = "addRecentChat", at = @At("HEAD"), argsOnly = true)
 	private String onAddRecentChat(String message) {
@@ -52,10 +55,13 @@ public class MixinChatComponent {
 
 		this.lastMessageEncrypted = false;
 		Component tooltip = Component.empty().append(Component.translatable("tag.nochatreports.encrypted",
-				Component.literal(NCRConfig.getEncryption().getAlgorithm().getName())
-				.withStyle(ChatFormatting.BOLD))).append(CommonComponents.NEW_LINE).append(
-						Component.translatable("tag.nochatreports.encrypted_original",
-								this.lastMessageOriginal));
+				Component.literal(NCRConfig.getEncryption().getAlgorithm().getName()).withStyle(ChatFormatting.BOLD)))
+				.append(CommonComponents.NEW_LINE)
+				.append(Component.translatable("Decrypted using keys[%s]", this.lastMessageKeyIndex))
+				.append(CommonComponents.NEW_LINE)
+				.append(Component.translatable("Used Encapsulation: %s", this.lastMessageEncapsulation == null ? "Unknown" : this.lastMessageEncapsulation))
+				.append(CommonComponents.NEW_LINE)
+				.append(Component.translatable("tag.nochatreports.encrypted_original", this.lastMessageOriginal));
 
 		return new GuiMessageTag(0x8B3EC7, ENCRYPTED_ICON, tooltip, "Encrypted");
 	}
@@ -71,14 +77,16 @@ public class MixinChatComponent {
 					Component.Serializer.toStableJson((Component) msg));
 		}
 
-		var decrypted = EncryptionUtil.tryDecrypt((Component) msg);
+		var decrypted = EncryptionUtil.tryDecryptDetailed((Component) msg);
 
-		decrypted.ifPresentOrElse(component -> {
+		decrypted.ifPresentOrElse(info -> {
 			this.lastMessageOriginal = EncryptionUtil.recreate((Component) msg);
 			this.lastMessageEncrypted = true;
+			this.lastMessageKeyIndex = info.keyIndex();
+			this.lastMessageEncapsulation = info.encapsulation();
 		}, () -> this.lastMessageEncrypted = false);
 
-		return this.lastMessageEncrypted ? decrypted.get() : msg;
+		return this.lastMessageEncrypted ? decrypted.get().decrypted() : msg;
 	}
 
 }
