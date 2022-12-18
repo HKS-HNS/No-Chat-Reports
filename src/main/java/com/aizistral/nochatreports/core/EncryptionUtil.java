@@ -17,7 +17,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class EncryptionUtil {
 
-	public record DetailedDecryptionInfo(Component decrypted, int keyIndex, @Nullable String encapsulation) {}
+	public record DetailedDecryptionInfo(Component decrypted, int keyIndex, @Nullable String encapsulation) {
+		public String getDecryptedText() {
+			return decrypted.getString();
+		}
+	}
 
 	public static Optional<Component> tryDecrypt(Component component) {
 		// Try out all encryptors
