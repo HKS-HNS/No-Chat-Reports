@@ -57,9 +57,9 @@ public class MixinChatComponent {
 		Component tooltip = Component.empty().append(Component.translatable("tag.nochatreports.encrypted",
 				Component.literal(NCRConfig.getEncryption().getAlgorithm().getName()).withStyle(ChatFormatting.BOLD)))
 				.append(CommonComponents.NEW_LINE)
-				.append(Component.translatable("Decrypted using keys[%s]", this.lastMessageKeyIndex))
+				.append(Component.translatable("tag.nochatreports.encryption_tooltip_extra_key", this.lastMessageKeyIndex))
 				.append(CommonComponents.NEW_LINE)
-				.append(Component.translatable("Used Encapsulation: %s", this.lastMessageEncapsulation == null ? "Unknown" : this.lastMessageEncapsulation))
+				.append(Component.translatable("tag.nochatreports.encryption_tooltip_extra_encapsultation", this.lastMessageEncapsulation == null ? "Unknown" : this.lastMessageEncapsulation))
 				.append(CommonComponents.NEW_LINE)
 				.append(Component.translatable("tag.nochatreports.encrypted_original", this.lastMessageOriginal));
 

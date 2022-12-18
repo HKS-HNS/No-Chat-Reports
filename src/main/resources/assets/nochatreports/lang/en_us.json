@@ -22,6 +22,8 @@
 	"tag.nochatreports.encrypted_original": "Non-decrypted: %1$s",
 	"gui.nochatreports.encryption_tooltip": "§lEncryption:§r %1$s\nRight-click to configure.\n\nWhile encryption is enabled, you can prevent it from being applied to the message by holding §n§lCtrl§r when sending it.",
 	"gui.nochatreports.encryption_tooltip_invalid": "§lEncryption:§r %1$s\n§cInvalid configuration. Click to configure.",
+	"tag.nochatreports.encryption_tooltip_extra_key": "Decrypted using keys[%s]",
+	"tag.nochatreports.encryption_tooltip_extra_encapsultation": "Used Encapsulation: %s",
 	"gui.nochatreports.encryption_state_on": "§a§lEnabled§r",
 	"gui.nochatreports.encryption_state_off": "§c§lDisabled§r",
 	"gui.nochatreports.encryption_warning.header": "About Encryption",
