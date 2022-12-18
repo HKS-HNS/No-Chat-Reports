@@ -37,6 +37,10 @@ public class EncryptionUtil {
 		return Optional.empty();
 	}
 
+	public static Optional<DetailedDecryptionInfo> tryDecryptDetailed(String message) {
+		return tryDecryptDetailed(Component.literal(message));
+	}
+
 	public static Optional<DetailedDecryptionInfo> tryDecryptDetailed(Component component) {
 		// Try out all encryptors
 		int index = 0;
