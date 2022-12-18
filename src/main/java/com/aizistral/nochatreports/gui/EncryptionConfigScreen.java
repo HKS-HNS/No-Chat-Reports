@@ -215,7 +215,6 @@ public class EncryptionConfigScreen extends Screen {
 						});
 
 		this.addRenderableWidget(this.usedEncryptionKeyIndexButton = cycle);
-		System.out.println("Updated button with " + keyCount + " keys available. Initial is " + initialValue);
 	}
 
 	@Override
