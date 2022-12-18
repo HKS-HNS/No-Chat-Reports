@@ -16,15 +16,16 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 public class EncryptionUtil {
 
 	public static Optional<Component> tryDecrypt(Component component) {
-		var optional = NCRConfig.getEncryption().getEncryptor();
-		if (optional.isEmpty())
-			return Optional.empty();
+		// Try out all encryptors
+		for(Encryptor<?> encryption : NCRConfig.getEncryption().getAllEncryptors()) {
+			Component copy = recreate(component);
+			ComponentContents contents = copy.getContents();
 
-		Encryptor<?> encryption = optional.get();
-		Component copy = recreate(component);
-		ComponentContents contents = copy.getContents();
-
-		return Optional.ofNullable(tryDecrypt(copy, encryption) ? copy : null);
+			if(tryDecrypt(copy, encryption)) {
+				return Optional.of(copy);
+			}
+		}
+		return Optional.empty();
 	}
 
 	public static boolean tryDecrypt(Component component, Encryptor<?> encryptor) {
