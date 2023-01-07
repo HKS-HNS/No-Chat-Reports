@@ -13,12 +13,16 @@ import it.unimi.dsi.fastutil.chars.Char2CharArrayMap;
 import it.unimi.dsi.fastutil.chars.Char2CharMap;
 import it.unimi.dsi.fastutil.chars.Char2CharMaps;
 
+import static java.util.Map.entry;
+
 public abstract class Encryptor<T extends Encryption> {
 	protected static final SecureRandom RANDOM = new SecureRandom();
 	protected static final Char2CharMap BASE64R_SHIFTS = createBase64RShifts();
 	protected static final Char2CharMap BASE64R_SHIFTS_REVERSE = createBase64RShiftsReverse();
 	protected static final Char2CharMap SUS16_SHIFTS = createSus16Shifts();
 	protected static final Char2CharMap SUS16_SHIFTS_REVERSE = createSus16ShiftsReverse();
+
+	private static String MC256_SHIFTS = "⅛⅜⅝⅞⅓⅔✉☂☔☄⛄☃⚐✎❣♤♧♡♢⛈ªº¬«»░▒▓∅∈≡±≥≤⌠⌡÷≈°∙√ⁿ²¡‰­·₴≠×ΦΨικλοπτυφЯабвгдежзиклмнопрстуфхцчшщъыьэюяєѕіј„…⁊←↑→↓⇄＋ƏəɛɪҮүӨөʻˌ;ĸ⁰¹³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁱ™⧈⚔☠ᴀʙᴄᴅᴇꜰɢʜᴊᴋʟᴍɴᴏᴘꞯʀꜱᴛᴜᴠᴡʏᴢ¢¤¥©®µ¶¼½¾·‐‚†‡•‱′″‴‵‶‷‹›※‼⁂⁉⁎⁑⁒⁗℗−∓∞☀☁☈Є☲☵☽♀♂⚥♠♣♥♦♩♪♫♬♭♮♯⚀⚁⚂⚃⚄⚅ʬ⚡⛏✔❄❌❤⭐△▷▽◁◆◇○◎☆★✘⸸▲▶▼◀●◦◘⚓ᛩᛪ☺☻";
 
 	protected Encryptor() {
 		// NO-OP
@@ -136,6 +140,22 @@ public abstract class Encryptor<T extends Encryption> {
 
 	protected static byte[] decodeSus16Bytes(String string) {
 		return Encryption.BASE16.decode(toBytes(unshiftSus16(string)));
+	}
+
+	protected static String encodeMC256(byte[] data) {
+		String res = new String();
+		for (int i = 0; i < data.length; ++i) {
+			res = res + MC256_SHIFTS.charAt(data[i]&0xff);
+		}
+		return res;
+	}
+
+	protected static byte[] decodeMC256(String string) {
+		byte[] bytes = new byte[string.length()];
+		for (int i = 0; i < string.length(); ++i) {
+			bytes[i] = (byte)MC256_SHIFTS.indexOf(string.charAt(i));
+		}
+		return bytes;
 	}
 
 	protected static byte[] decodeBase64NonRBytes(String string) {
