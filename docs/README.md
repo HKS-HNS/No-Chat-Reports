@@ -4,10 +4,10 @@
 - Added that the chat always gets encrypted
 - Added & color codes
 - Add own prefix for commands in config, they will be ignored for the encryption
-- Remove caesar upper limit (Tanks to [EnderKill98](https://github.com/EnderKill98))
-- Add option to select old Base64 (Tanks to [EnderKill98](https://github.com/EnderKill98))
-- Add Sus16 en (Tanks to [EnderKill98](https://github.com/EnderKill98))
-- Decode in all encapsulations (Tanks to [EnderKill98](https://github.com/EnderKill98))
+- Remove caesar upper limit (Thanks to [EnderKill98](https://github.com/EnderKill98))
+- Add option to select old Base64 (Thanks to [EnderKill98](https://github.com/EnderKill98))
+- Add Sus16 en (Thanks to [EnderKill98](https://github.com/EnderKill98))
+- Decode in all encapsulations (Thanks to [EnderKill98](https://github.com/EnderKill98))
 
 
 ## Color codes table:
