@@ -31,6 +31,8 @@ public class AESCFB8Encryption extends AESEncryption {
 			return new AESCFB8Encryptor(key, Encryption.AES_CFB8_BASE64R);
 		} else if (this.getEncapsulation().equalsIgnoreCase("Sus16")) {
 			return new AESCFB8Encryptor(key, Encryption.AES_CFB8_SUS16);
+		} else if (this.getEncapsulation().equalsIgnoreCase("MC256")) {
+			return new AESCFB8Encryptor(key, Encryption.AES_CFB8_MC256);
 		} else {
 			throw new RuntimeException("Unknown Encapsulation: " + this.getEncapsulation());
 		}

@@ -31,6 +31,7 @@ public abstract class AESEncryptor<T extends AESEncryption> extends Encryptor<T>
 	private final SecretKey key;
 	private final Cipher encryptor, decryptor;
 	private final boolean useIV;
+	private String decryptLastUsedEncapsulation = null;
 
 	protected AESEncryptor(String key, T encryption) throws InvalidKeyException {
 		this(new SecretKeySpec(decodeBinaryKey(key), "AES"), encryption);
@@ -87,6 +88,9 @@ public abstract class AESEncryptor<T extends AESEncryption> extends Encryptor<T>
 				} else if (this.encryption.getEncapsulation().equalsIgnoreCase("Sus16")) {
 					return encodeSus16(ByteBuffer.allocate(encrypted.length + tuple.getB().length).put(tuple.getB())
 					.put(encrypted).array());
+				} else if (this.encryption.getEncapsulation().equalsIgnoreCase("MC256")) {
+					return encodeMC256(ByteBuffer.allocate(encrypted.length + tuple.getB().length).put(tuple.getB())
+					.put(encrypted).array());
 				} else {
 					throw new RuntimeException("Unknown Encapsulation: " + this.encryption.getEncapsulation());
 				}
@@ -97,6 +101,8 @@ public abstract class AESEncryptor<T extends AESEncryption> extends Encryptor<T>
 					return encodeBase64R(this.encryptor.doFinal(toBytes(message)));
 				} else if (this.encryption.getEncapsulation().equalsIgnoreCase("Sus16")) {
 					return encodeSus16(this.encryptor.doFinal(toBytes(message)));
+				} else if (this.encryption.getEncapsulation().equalsIgnoreCase("MC256")) {
+					return encodeMC256(this.encryptor.doFinal(toBytes(message)));
 				} else {
 					throw new RuntimeException("Unknown Encapsulation: " + this.encryption.getEncapsulation());
 				}
@@ -108,11 +114,13 @@ public abstract class AESEncryptor<T extends AESEncryption> extends Encryptor<T>
 
 	@Override
 	public String decrypt(String message) {
+		decryptLastUsedEncapsulation = null;
 		String candidate = null;
 		RuntimeException firstEx = null;
 		// Attempt Base64R first
 		try {
 			candidate = internalRawDecrypt(decodeBase64RBytes(message));
+			decryptLastUsedEncapsulation = "Base64R";
 		} catch (RuntimeException ex) {
 			if(firstEx == null) firstEx = ex;
 		}
@@ -120,6 +128,7 @@ public abstract class AESEncryptor<T extends AESEncryption> extends Encryptor<T>
 		if (candidate == null || !candidate.startsWith("#%")) {
 			try {
 				candidate = internalRawDecrypt(decodeBase64NonRBytes(message));
+				decryptLastUsedEncapsulation = "Base64";
 			} catch (RuntimeException ex) {
 				if(firstEx == null) firstEx = ex;
 			}
@@ -128,6 +137,16 @@ public abstract class AESEncryptor<T extends AESEncryption> extends Encryptor<T>
 		if (candidate == null || !candidate.startsWith("#%")) {
 			try {
 				candidate = internalRawDecrypt(decodeSus16Bytes(message));
+				decryptLastUsedEncapsulation = "Sus16";
+			} catch (RuntimeException ex) {
+				if(firstEx == null) firstEx = ex;
+			}
+		}
+		// next MC256
+		if (candidate == null || !candidate.startsWith("#%")) {
+			try {
+				candidate = internalRawDecrypt(decodeMC256(message));
+				decryptLastUsedEncapsulation = "MC256";
 			} catch (RuntimeException ex) {
 				if(firstEx == null) firstEx = ex;
 			}
@@ -168,4 +187,7 @@ public abstract class AESEncryptor<T extends AESEncryption> extends Encryptor<T>
 
 	protected abstract Tuple<AlgorithmParameterSpec, byte[]> splitIV(byte[] message) throws UnsupportedOperationException;
 
+	public String getDecryptLastUsedEncapsulation() {
+		return decryptLastUsedEncapsulation;
+	}
 }

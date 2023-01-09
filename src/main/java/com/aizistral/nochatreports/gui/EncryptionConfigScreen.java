@@ -1,7 +1,9 @@
 package com.aizistral.nochatreports.gui;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.checkerframework.checker.units.qual.A;
 import org.spongepowered.include.com.google.common.base.Objects;
 
 import com.aizistral.nochatreports.config.NCRConfig;
@@ -46,7 +48,6 @@ public class EncryptionConfigScreen extends Screen {
 	private static final Component DICE_TOOLTIP = Component.translatable("gui.nochatreports.encryption_config.dice_tooltip");
 	private static final Component PASS_NOT_ALLOWED = Component.translatable("gui.nochatreports.encryption_config.pass_not_allowed");
 	private static final Component ENCRYPT_PUBLIC = Component.translatable("gui.nochatreports.encryption_config.encrypt_public");
-
 	private static final int FIELDS_Y_START = 45;
 	private final Screen previous;
 	private CustomEditBox keyField, passField;
@@ -55,6 +56,7 @@ public class EncryptionConfigScreen extends Screen {
 	private MultiLineLabel keyDesc = MultiLineLabel.EMPTY, passDesc = MultiLineLabel.EMPTY;
 	protected Checkbox encryptPublicCheck;
 	private boolean settingPassKey = false;
+	private CycleButton<Integer> usedEncryptionKeyIndexButton;
 
 	public EncryptionConfigScreen(Screen previous) {
 		super(CommonComponents.EMPTY);
@@ -171,6 +173,48 @@ public class EncryptionConfigScreen extends Screen {
 				this.keyField.setValue("");
 			}
 		}
+
+		updateUsedKeyIndexButton();
+	}
+
+	private ArrayList<Integer> indicesForLength(int length) {
+		ArrayList<Integer> indices = new ArrayList<>();
+		for(int i = 0; i < length; i++) indices.add(i);
+		return indices;
+	}
+
+	public void onUpdateUsedKeyIndex(int newKeyIndex) {
+		NCRConfig.getEncryption().setUsedEncryptionKeyIndex(newKeyIndex);
+	}
+
+	public void updateUsedKeyIndexButton() {
+		if(this.usedEncryptionKeyIndexButton != null) {
+			this.removeWidget(this.usedEncryptionKeyIndexButton);
+		}
+		int initialValue = NCRConfig.getEncryption().getUsedEncryptionKeyIndex();
+		int keyCount = keyField.getValue().split(",").length;
+		if(this.usedEncryptionKeyIndexButton != null) {
+			if(this.usedEncryptionKeyIndexButton.getValue() < keyCount) {
+				initialValue = this.usedEncryptionKeyIndexButton.getValue();
+			}else {
+				initialValue = Math.max(0, keyCount - 1);
+			}
+		}
+
+		int buttonWidth = 128;
+		CycleButton<Integer> cycle = CycleButton.<Integer>builder(value -> {
+					return Component.translatable("gui.nochatreports.encryption_config.encryption_key_index", value);
+				}).withValues(indicesForLength(keyCount))
+				.displayOnlyValue()
+				.withInitialValue(initialValue)
+				.withTooltip(value -> this.minecraft.font.split(
+						Component.literal("You can have multiple keys separated by commas. This index specifies, which key is use for encrypting messages."), 250))
+				.create(this.keyField.x + this.keyField.getWidth() - buttonWidth, this.keyField.y + 24, buttonWidth, 20, CommonComponents.EMPTY,
+						(cycleButton, value) -> {
+							this.unfocusFields();
+						});
+
+		this.addRenderableWidget(this.usedEncryptionKeyIndexButton = cycle);
 	}
 
 	@Override
@@ -234,10 +278,18 @@ public class EncryptionConfigScreen extends Screen {
 		}
 
 		if (!StringUtil.isNullOrEmpty(key)) {
-			this.validationIcon.yTexStart = this.algorithmButton.getValue().validateKey(key) ? 0 : 12;
+			boolean isValid = false;
+			for(String subKey : key.split(",")) {
+				if(this.algorithmButton.getValue().validateKey(subKey)) {
+					isValid = true;
+					break;
+				}
+			}
+			this.validationIcon.yTexStart = isValid ? 0 : 12;
 		} else {
 			this.validationIcon.yTexStart = 0;
 		}
+		updateUsedKeyIndexButton();
 	}
 
 	private void onPassphraseUpdate(String pass) {
@@ -245,9 +297,15 @@ public class EncryptionConfigScreen extends Screen {
 
 		this.settingPassKey = true;
 		if (!StringUtil.isNullOrEmpty(pass)) {
-			if (encryption.supportsPassphrases()) {
-				this.keyField.setValue(encryption.getPassphraseKey(pass));
+			StringBuilder keyList = new StringBuilder();
+			for(String subPass : pass.split(",")) {
+				if (encryption.supportsPassphrases()) {
+					if(keyList.length() > 0) keyList.append(',');
+					keyList.append(encryption.getPassphraseKey(subPass));
+				}
 			}
+			if(keyList.length() > 0)
+				this.keyField.setValue(keyList.toString());
 		} else {
 			this.onKeyUpdate(this.keyField.getValue());
 		}
@@ -273,10 +331,12 @@ public class EncryptionConfigScreen extends Screen {
 	private void onDone() {
 		var config = NCRConfig.getEncryption();
 		var encryption = this.algorithmButton.getValue();
+		var usedEncryptionKeyIndex = this.usedEncryptionKeyIndexButton.getValue();
 		config.setAlgorithm(encryption);
 		config.setEncryptionKey(!StringUtil.isNullOrEmpty(this.keyField.getValue()) ? this.keyField.getValue()
 				: encryption.getDefaultKey());
 		config.setEncryptPublic(this.encryptPublicCheck.selected());
+		config.setUsedEncryptionKeyIndex(usedEncryptionKeyIndex);
 	}
 
 	private boolean hugeGUI() {

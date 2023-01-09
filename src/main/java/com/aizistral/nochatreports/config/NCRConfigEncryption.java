@@ -14,6 +14,7 @@ import com.aizistral.nochatreports.gui.UnsafeServerScreen;
 import net.minecraft.client.multiplayer.resolver.ServerAddress;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringUtil;
+import org.checkerframework.checker.units.qual.A;
 
 public class NCRConfigEncryption extends JSONConfig {
 	protected static final String FILE_NAME = "NoChatReports/NCR-Encryption.json";
@@ -27,6 +28,7 @@ public class NCRConfigEncryption extends JSONConfig {
 	private transient boolean isValid = false;
 	private transient String lastMessage = "???";
 	protected List<String> commandPrefixes = List.of("/", ".");
+	private int usedEncryptionKeyIndex = 0;
 
 	protected NCRConfigEncryption() {
 		super(FILE_NAME);
@@ -45,7 +47,13 @@ public class NCRConfigEncryption extends JSONConfig {
 	}
 
 	private void validate() {
-		this.isValid = this.algorithm.validateKey(this.encryptionKey);
+		this.isValid = true;
+		for(String key : this.encryptionKey.split(",")) {
+			if(!this.algorithm.validateKey(key)) {
+				this.isValid = false;
+				return;
+			}
+		}
 	}
 
 	public void toggleEncryption() {
@@ -189,10 +197,35 @@ public class NCRConfigEncryption extends JSONConfig {
 			return Optional.empty();
 
 		try {
-			return Optional.of(this.algorithm.getProcessor(this.encryptionKey));
+			String[] keys = this.encryptionKey.split(",");
+			int validKeyIndex = getUsedEncryptionKeyIndex() >= 0 && getUsedEncryptionKeyIndex() < keys.length ? getUsedEncryptionKeyIndex() : 0;
+			return Optional.of(this.algorithm.getProcessor(keys[validKeyIndex]));
 		} catch (InvalidKeyException ex) {
 			throw new RuntimeException(ex); // shouldn't happen due to prior validation
 		}
 	}
 
+	public Encryptor<?>[] getAllEncryptors() {
+		if (!this.isValid())
+			return new Encryptor[0];
+
+		try {
+			ArrayList<Encryptor<?>> encryptors = new ArrayList<>();
+			for(String key : this.encryptionKey.split(",")) {
+				encryptors.add(this.algorithm.getProcessor(key));
+			}
+			return encryptors.toArray(new Encryptor[0]);
+		} catch (InvalidKeyException ex) {
+			throw new RuntimeException(ex); // shouldn't happen due to prior validation
+		}
+	}
+
+	public int getUsedEncryptionKeyIndex() {
+		return usedEncryptionKeyIndex;
+	}
+
+	public void setUsedEncryptionKeyIndex(int usedEncryptionKeyIndex) {
+		this.usedEncryptionKeyIndex = usedEncryptionKeyIndex;
+		saveFile();
+	}
 }
