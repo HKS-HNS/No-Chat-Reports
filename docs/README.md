@@ -1,4 +1,4 @@
-# No Chat Reports with modifications
+# No Chat Reports with modifications [Archived - No Further Updates]
 
 ## Modifications:
 - Added that the chat always gets encrypted
